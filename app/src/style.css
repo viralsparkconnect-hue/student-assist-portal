@@ -1,0 +1,10 @@
+body{font-family: Inter, Roboto, Arial; margin:0; padding:0; background:#f7f7f7; color:#111}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:#0b5cff;color:#fff}
+.topbar nav button{margin-left:8px;background:transparent;border:none;color:#fff;cursor:pointer}
+.container{padding:20px}
+.order-form{display:flex;flex-direction:column;gap:8px;max-width:600px}
+.order-form input, .order-form textarea{padding:8px;border:1px solid #ccc;border-radius:4px}
+.order-form button{padding:10px;background:#0b5cff;color:#fff;border:none;border-radius:6px;cursor:pointer}
+.pricing{border-collapse:collapse;width:100%}
+.pricing td, .pricing th{border:1px solid #ddd;padding:8px}
+.footer{padding:12px;text-align:center;background:#eee;margin-top:20px}
