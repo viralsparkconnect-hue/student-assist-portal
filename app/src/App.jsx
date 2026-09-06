@@ -1,76 +1,72 @@
 import { useState, useEffect, useRef } from "react";
-import {
-  Code2, Cog, Building2, Zap, Cpu, FlaskConical,
-  Globe, MessageSquare, Plug, ShoppingCart, Bot, Flame, Ruler, Rocket,
-  Landmark, Activity, Droplets, Building, Home, CircuitBoard, RadioTower,
-  BatteryCharging, Image, ShieldAlert, Cloud, UserCheck, TestTube, Atom, Beaker,
-  FileText, HelpCircle, GraduationCap, Presentation, Target,
-  PenLine, Handshake, PackageCheck, CheckCircle2,
-  Lock, Clock, ShieldCheck, TrendingUp, MapPin, Linkedin, Wrench, Mic,
-} from "lucide-react";
 import "./index.css";
 import { supabase } from "./lib/supabaseClient";
 import Dashboard from "./Dashboard";
 
-const branchIconMap = { cs: Code2, mech: Cog, civil: Building2, elec: Zap, it: Cpu, chem: FlaskConical };
-
 const branches = [
   {
     id: "cs",
-    code: "CS·01",
+    icon: "💻",
     label: "Computer Science",
+    color: "#00f5ff",
     desc: "Web dev, ML/AI, DSA, OS, DBMS, App Development",
     projects: ["Portfolio Website", "Chat Application", "ML Model", "API Builder", "E-Commerce App"],
   },
   {
     id: "mech",
-    code: "ME·02",
+    icon: "⚙️",
     label: "Mechanical",
+    color: "#ff9500",
     desc: "CAD designs, Thermodynamics, Fluid Mechanics, Robotics",
     projects: ["Robotic Arm Design", "Heat Exchanger", "Gear Mechanism", "3D CAD Model", "Drone Frame"],
   },
   {
     id: "civil",
-    code: "CE·03",
+    icon: "🏗️",
     label: "Civil",
+    color: "#4cd964",
     desc: "Structural design, AutoCAD, Surveying, Construction Tech",
     projects: ["Bridge Design", "Smart City Plan", "Earthquake Analysis", "Water Treatment", "Green Building"],
   },
   {
     id: "elec",
-    code: "EE·04",
+    icon: "⚡",
     label: "Electronics",
+    color: "#ff2d55",
     desc: "Circuit Design, Embedded Systems, IoT, VLSI, PCB",
     projects: ["IoT Smart Home", "Arduino Robot", "PCB Design", "Signal Processor", "Power System"],
   },
   {
     id: "it",
-    code: "IT·05",
+    icon: "🌐",
     label: "IT / AI & ML",
+    color: "#af52de",
     desc: "Deep Learning, NLP, Cloud, Cybersecurity, Data Science",
     projects: ["Chatbot with NLP", "Image Classifier", "Fraud Detector", "Cloud Dashboard", "Face Recognition"],
   },
   {
     id: "chem",
-    code: "CH·06",
+    icon: "🧪",
     label: "Chemical",
+    color: "#ffcc00",
     desc: "Process Design, Simulation, Material Science, Environment",
     projects: ["Reactor Design", "Distillation Column", "Wastewater Plant", "Polymer Study", "Catalyst Analysis"],
   },
 ];
 
-// Maps a project title to a relevant icon by keyword, so project cards get a
-// visual anchor beyond a plain number. Falls back to the branch's own icon.
+// Maps a project title to a relevant emoji icon by keyword, so project
+// cards get a visual anchor beyond a plain number. Falls back to the
+// branch's own icon when no keyword matches.
 const projectIconMap = {
-  website: Globe, portfolio: Globe, chat: MessageSquare, ml: Cpu, model: Cpu,
-  api: Plug, "e-commerce": ShoppingCart, ecommerce: ShoppingCart,
-  robotic: Bot, robot: Bot, heat: Flame, exchanger: Flame, gear: Cog,
-  cad: Ruler, drone: Rocket,
-  bridge: Landmark, city: Building2, earthquake: Activity, water: Droplets, building: Building, green: Building,
-  iot: Home, "smart home": Home, arduino: CircuitBoard, pcb: CircuitBoard, signal: RadioTower, power: BatteryCharging,
-  chatbot: Bot, nlp: Bot, image: Image, classifier: Image, fraud: ShieldAlert,
-  cloud: Cloud, face: UserCheck, recognition: UserCheck,
-  reactor: FlaskConical, distillation: TestTube, wastewater: Droplets, polymer: Atom, catalyst: Beaker,
+  website: "🌐", portfolio: "🌐", chat: "💬", ml: "🧠", model: "🧠",
+  api: "🔌", "e-commerce": "🛒", ecommerce: "🛒",
+  robotic: "🦾", robot: "🦾", heat: "🔥", exchanger: "🔥", gear: "⚙️",
+  cad: "📐", drone: "🛸",
+  bridge: "🌉", city: "🏙️", earthquake: "🌋", water: "💧", building: "🏢", green: "🏢",
+  iot: "🏠", "smart home": "🏠", arduino: "🔧", pcb: "🖲️", signal: "📡", power: "🔋",
+  chatbot: "🤖", nlp: "🤖", image: "🖼️", classifier: "🖼️", fraud: "🕵️",
+  cloud: "☁️", face: "🙂", recognition: "🙂",
+  reactor: "⚗️", distillation: "🧪", wastewater: "🚰", polymer: "🧬", catalyst: "🔬",
 };
 
 function projectIcon(name, fallback) {
@@ -80,38 +76,45 @@ function projectIcon(name, fallback) {
 }
 
 const services = [
-  { icon: Rocket, title: "Project ideas", desc: "100+ curated project topics for every branch & semester" },
-  { icon: FileText, title: "Full documentation", desc: "IEEE-format reports, abstracts, and project reports" },
-  { icon: HelpCircle, title: "Guided help", desc: "Get instant guidance on your project doubts" },
-  { icon: GraduationCap, title: "Mini & major projects", desc: "From simple mini projects to full major project builds" },
-  { icon: Code2, title: "Code & design", desc: "Working source code, circuit diagrams, and CAD files" },
-  { icon: Presentation, title: "PPT & presentation", desc: "Professional presentations with content and design" },
-  { icon: Target, title: "Career & placement guidance", desc: "Practical support for resumes, interviews, internships, placements, and your engineering career" },
+  { icon: "🚀", title: "Project Ideas", desc: "100+ curated project topics for every branch & semester" },
+  { icon: "📋", title: "Full Documentation", desc: "IEEE-format reports, abstracts, and project reports" },
+  { icon: "💡", title: "AI-Powered Help", desc: "Get instant guidance on your project doubts" },
+  { icon: "🎓", title: "Mini & Major Projects", desc: "From simple mini projects to full major project builds" },
+  { icon: "🖥️", title: "Code & Design", desc: "Working source code, circuit diagrams, and CAD files" },
+  { icon: "📊", title: "PPT & Presentation", desc: "Professional presentations with content and design" },
+  { icon: "🎯", title: "Career & Placement Guidance", desc: "Practical support for resumes, interviews, internships, placements, and your engineering career" },
+];
+
+const stats = [
+  { num: "🛠️", label: "Practical Engineering Support" },
+  { num: "💡", label: "Project Ideas & Guidance" },
+  { num: "🏛️", label: "Multiple Engineering Branches" },
+  { num: "🎓", label: "Built for Students" },
 ];
 
 const howItWorksSteps = [
   {
     num: "01",
-    icon: PenLine,
-    title: "Tell us your project",
+    icon: "📝",
+    title: "Tell Us Your Project",
     desc: "Pick your branch, semester, and describe what you need — mini project, major project, or just guidance.",
   },
   {
     num: "02",
-    icon: Handshake,
-    title: "Get matched instantly",
+    icon: "🤝",
+    title: "Get Matched Instantly",
     desc: "We connect you with the right expert for your exact branch and topic — no generic templates.",
   },
   {
     num: "03",
-    icon: PackageCheck,
-    title: "Receive everything you need",
+    icon: "⚡",
+    title: "Receive Everything You Need",
     desc: "Working code, CAD/circuit files, IEEE-format documentation, and a polished PPT — all in one package.",
   },
   {
     num: "04",
-    icon: CheckCircle2,
-    title: "Submit with confidence",
+    icon: "🎯",
+    title: "Submit With Confidence",
     desc: "Understand every part of your project so you can explain it in viva and score full marks.",
   },
 ];
@@ -191,6 +194,25 @@ function useReveal() {
   return [ref, visible];
 }
 
+function TrustStrip() {
+  const items = [
+    { icon: "🔒", text: "100% Original Work" },
+    { icon: "⚡", text: "24–48hr Turnaround" },
+    { icon: "🎓", text: "Expert Engineers" },
+    { icon: "✅", text: "Verified & Secure" },
+  ];
+  return (
+    <div className="trust-strip">
+      {items.map((t) => (
+        <div key={t.text} className="trust-item">
+          <span className="trust-icon">{t.icon}</span>
+          <span>{t.text}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function Reveal({ children, className = "", delay = 0 }) {
   const [ref, visible] = useReveal();
   return (
@@ -204,36 +226,21 @@ function Reveal({ children, className = "", delay = 0 }) {
   );
 }
 
-function SectionHead({ kicker, title, sub, meta }) {
-  return (
-    <Reveal className="section-head">
-      <div className="section-head-text">
-        <span className="kicker">{kicker}</span>
-        <h2>{title}</h2>
-        {sub && <p>{sub}</p>}
-      </div>
-      {meta && <span className="section-index">{meta}</span>}
-    </Reveal>
-  );
-}
+function CursorGlow() {
+  const glowRef = useRef(null);
 
-function TrustStrip() {
-  const items = [
-    { icon: Lock, text: "100% original work" },
-    { icon: Clock, text: "24–48 hr turnaround" },
-    { icon: GraduationCap, text: "Expert engineers" },
-    { icon: ShieldCheck, text: "Verified & secure" },
-  ];
-  return (
-    <div className="trust-strip">
-      {items.map((t) => (
-        <div key={t.text} className="trust-item">
-          <t.icon size={16} strokeWidth={1.8} />
-          <span>{t.text}</span>
-        </div>
-      ))}
-    </div>
-  );
+  useEffect(() => {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    const move = (e) => {
+      if (glowRef.current) {
+        glowRef.current.style.transform = `translate(${e.clientX - 200}px, ${e.clientY - 200}px)`;
+      }
+    };
+    window.addEventListener("mousemove", move);
+    return () => window.removeEventListener("mousemove", move);
+  }, []);
+
+  return <div className="cursor-glow" ref={glowRef}></div>;
 }
 
 function Navbar({ active, setActive }) {
@@ -250,10 +257,11 @@ function Navbar({ active, setActive }) {
 
   return (
     <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
-      <a href="/" className="nav-logo">
-        <span className="logo-mark">EA</span>
+      <div className="nav-logo">
+        <span className="logo-icon">⚡</span>
         <span className="logo-text">EngiAssist</span>
-      </a>
+        <span className="logo-badge">PRO</span>
+      </div>
       <ul className={`nav-links ${mobileOpen ? "open" : ""}`}>
         {links.map((l) => (
           <li key={l}>
@@ -276,7 +284,7 @@ function Navbar({ active, setActive }) {
             else window.location.href = "/#contact";
           }}
         >
-          Get help now
+          Get Help Now
         </button>
         <button className="hamburger" onClick={() => setMobileOpen(!mobileOpen)}>
           <span></span><span></span><span></span>
@@ -318,20 +326,18 @@ function Hero() {
     return () => clearTimeout(t);
   }, []);
 
-  const panelRows = [
-    { code: "CS·01", icon: Code2, label: "CS project help" },
-    { code: "ME·02", icon: Cog, label: "Mechanical CAD design" },
-    { code: "IT·05", icon: Cpu, label: "AI/ML model builds" },
-    { code: "CE·03", icon: Building2, label: "Civil project reports" },
-  ];
-
   return (
     <section className="hero" id="home">
-      <div className="hero-bg"></div>
+      <div className="hero-bg">
+        <div className="grid-overlay"></div>
+        <div className="orb orb1"></div>
+        <div className="orb orb2"></div>
+        <div className="orb orb3"></div>
+      </div>
       <div className="hero-content">
-        <span className="kicker hero-badge">Engineering project support</span>
+        <div className="hero-badge">🎓 Engineering Help, Made Simple</div>
         <h1 className="hero-title">
-          Your ultimate guide for<br />
+          Your Ultimate Guide for<br />
           <span className="typed-line">
             <span className="typed-text">{typed}</span>
             <span className="cursor">|</span>
@@ -346,35 +352,32 @@ function Hero() {
             className="btn-primary"
             onClick={() => document.getElementById("branches").scrollIntoView({ behavior: "smooth" })}
           >
-            Explore your branch
+            Explore Your Branch 🚀
           </button>
           <button
             className="btn-secondary"
             onClick={() => document.getElementById("projects").scrollIntoView({ behavior: "smooth" })}
           >
-            View projects
+            View Projects ↗
           </button>
+        </div>
+        <div className="hero-stats">
+          {stats.map((s) => (
+            <div key={s.label} className="stat-chip">
+              <span className="stat-num">{s.num}</span>
+              <span className="stat-label">{s.label}</span>
+            </div>
+          ))}
         </div>
         <TrustStrip />
       </div>
       <div className="hero-visual">
-        <div className="spec-panel">
-          <div className="spec-panel-head">
-            <span>Project catalog</span>
-            <span>6 branches</span>
-          </div>
-          <ul className="spec-list">
-            {panelRows.map((r) => (
-              <li key={r.code} className="spec-row">
-                <span className="spec-row-code">{r.code}</span>
-                <span className="spec-row-icon"><r.icon size={15} strokeWidth={1.8} /></span>
-                <span className="spec-row-label">{r.label}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="spec-panel-foot">
-            Most requests get a response within <strong>24–48 hours</strong>.
-          </div>
+        <div className="floating-card fc1">💻 CS Project Help</div>
+        <div className="floating-card fc2">⚙️ Mech CAD Design</div>
+        <div className="floating-card fc3">🤖 AI/ML Models</div>
+        <div className="floating-card fc4">🏗️ Civil Reports</div>
+        <div className="center-glow">
+          <span>⚡</span>
         </div>
       </div>
     </section>
@@ -386,49 +389,44 @@ function Branches() {
 
   return (
     <section className="branches-section" id="branches">
-      <SectionHead
-        kicker="All branches"
-        title="Choose your engineering branch"
-        sub="Specialized project guidance for every discipline"
-        meta="6 branches"
-      />
+      <Reveal className="section-header">
+        <span className="section-tag">All Branches</span>
+        <h2>Choose Your Engineering Branch</h2>
+        <p>Specialized project guidance for every discipline</p>
+      </Reveal>
       <div className="branches-grid">
-        {branches.map((b) => {
-          const Icon = branchIconMap[b.id];
-          return (
-            <div
-              key={b.id}
-              className={`branch-card ${active === b.id ? "active" : ""}`}
-              onClick={() => setActive(active === b.id ? null : b.id)}
-            >
-              <div className="branch-card-top">
-                <div className="branch-icon"><Icon size={20} strokeWidth={1.8} /></div>
-                <span className="branch-code">{b.code}</span>
+        {branches.map((b) => (
+          <div
+            key={b.id}
+            className={`branch-card ${active === b.id ? "active" : ""}`}
+            style={{ "--accent": b.color }}
+            onClick={() => setActive(active === b.id ? null : b.id)}
+          >
+            <div className="branch-icon">{b.icon}</div>
+            <h3>{b.label}</h3>
+            <p>{b.desc}</p>
+            {active === b.id && (
+              <div className="branch-projects">
+                <p className="proj-title">Popular Projects:</p>
+                <ul>
+                  {b.projects.map((p) => (
+                    <li key={p}>→ {p}</li>
+                  ))}
+                </ul>
+                <button
+                  className="branch-cta"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
+                  }}
+                >
+                  Get Help with {b.label} Projects
+                </button>
               </div>
-              <h3>{b.label}</h3>
-              <p>{b.desc}</p>
-              {active === b.id && (
-                <div className="branch-projects">
-                  <p className="proj-title">Popular projects</p>
-                  <ul>
-                    {b.projects.map((p) => (
-                      <li key={p}>{p}</li>
-                    ))}
-                  </ul>
-                  <button
-                    className="branch-cta"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      document.getElementById("contact").scrollIntoView({ behavior: "smooth" });
-                    }}
-                  >
-                    Get help with {b.label} projects
-                  </button>
-                </div>
-              )}
-            </div>
-          );
-        })}
+            )}
+            <div className="branch-glow"></div>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -437,21 +435,17 @@ function Branches() {
 function Services() {
   return (
     <section className="services-section" id="services">
-      <SectionHead
-        kicker="What we offer"
-        title="Everything you need to excel"
-        sub="Complete engineering project support from idea to submission"
-        meta="7 services"
-      />
-      <div className="services-list">
+      <Reveal className="section-header light">
+        <span className="section-tag">What We Offer</span>
+        <h2>Everything You Need to Excel</h2>
+        <p>Complete engineering project support from idea to submission</p>
+      </Reveal>
+      <div className="services-grid">
         {services.map((s, i) => (
-          <Reveal key={s.title} delay={i * 40} className="service-row">
-            <span className="service-row-num">{String(i + 1).padStart(2, "0")}</span>
-            <span className="service-row-icon"><s.icon size={18} strokeWidth={1.8} /></span>
-            <div>
-              <h3>{s.title}</h3>
-              <p>{s.desc}</p>
-            </div>
+          <Reveal key={s.title} delay={i * 60} className="service-card">
+            <div className="service-icon">{s.icon}</div>
+            <h3>{s.title}</h3>
+            <p>{s.desc}</p>
           </Reveal>
         ))}
       </div>
@@ -462,20 +456,21 @@ function Services() {
 function HowItWorks() {
   return (
     <section className="how-section" id="how-it-works">
-      <SectionHead
-        kicker="Simple process"
-        title="How EngiAssist works"
-        sub="From idea to submission in 4 clear steps"
-      />
+      <Reveal className="section-header light">
+        <span className="section-tag">Simple Process</span>
+        <h2>How EngiAssist Works</h2>
+        <p>From idea to submission in 4 clear steps</p>
+      </Reveal>
       <div className="how-grid">
         {howItWorksSteps.map((s, i) => (
-          <Reveal key={s.num} delay={i * 70} className="how-card-wrap">
+          <Reveal key={s.num} delay={i * 100} className="how-card-wrap">
             <div className="how-card">
               <span className="how-num">{s.num}</span>
-              <div className="how-icon"><s.icon size={17} strokeWidth={1.8} /></div>
+              <div className="how-icon">{s.icon}</div>
               <h3>{s.title}</h3>
               <p>{s.desc}</p>
             </div>
+            {i < howItWorksSteps.length - 1 && <div className="how-connector"></div>}
           </Reveal>
         ))}
       </div>
@@ -486,12 +481,12 @@ function HowItWorks() {
 function FixMyProject() {
   return (
     <section className="fix-section" id="fix-my-project">
-      <SectionHead
-        kicker="Already in progress?"
-        title="Your project doesn't have to start from zero"
-        sub="Already have a project? We can help you fix, finish, or explain it."
-      />
-      <Reveal className="fix-wrapper" delay={80}>
+      <Reveal className="section-header">
+        <span className="section-tag">Already In Progress?</span>
+        <h2>Your Project Doesn't Have To Start From Zero</h2>
+        <p>Already have a project? We can help you fix, finish, or explain it.</p>
+      </Reveal>
+      <Reveal className="fix-wrapper" delay={100}>
         <div className="fix-chips">
           {fixItems.map((f) => (
             <span key={f} className="fix-chip">{f}</span>
@@ -501,7 +496,7 @@ function FixMyProject() {
           className="btn-primary"
           onClick={() => document.getElementById("contact").scrollIntoView({ behavior: "smooth" })}
         >
-          Get help with my existing project
+          Get Help With My Existing Project →
         </button>
       </Reveal>
     </section>
@@ -511,14 +506,15 @@ function FixMyProject() {
 function Testimonials() {
   return (
     <section className="testimonials-section">
-      <SectionHead
-        kicker="Student voices"
-        title="What students say"
-        sub="Real feedback from students who got their projects done right"
-      />
+      <Reveal className="section-header">
+        <span className="section-tag">Student Voices</span>
+        <h2>What Students Say</h2>
+        <p>Real feedback from students who got their projects done right</p>
+      </Reveal>
       <div className="testimonials-grid">
         {testimonials.map((t, i) => (
-          <Reveal key={t.name} delay={i * 80} className="testimonial-card">
+          <Reveal key={t.name} delay={i * 100} className="testimonial-card">
+            <div className="testimonial-quote-mark">"</div>
             <p className="testimonial-text">{t.quote}</p>
             <div className="testimonial-author">
               <div className="testimonial-avatar">{t.name.charAt(0)}</div>
@@ -538,14 +534,14 @@ function FAQ() {
   const [open, setOpen] = useState(0);
   return (
     <section className="faq-section" id="faq">
-      <SectionHead
-        kicker="Got questions?"
-        title="Frequently asked questions"
-        sub="Everything students usually ask before getting started"
-      />
+      <Reveal className="section-header light">
+        <span className="section-tag">Got Questions?</span>
+        <h2>Frequently Asked Questions</h2>
+        <p>Everything students usually ask before getting started</p>
+      </Reveal>
       <div className="faq-list">
         {faqs.map((f, i) => (
-          <Reveal key={f.q} delay={i * 40} className="faq-item-wrap">
+          <Reveal key={f.q} delay={i * 60} className="faq-item-wrap">
             <div className={`faq-item ${open === i ? "faq-open" : ""}`}>
               <button className="faq-question" onClick={() => setOpen(open === i ? -1 : i)}>
                 <span>{f.q}</span>
@@ -561,14 +557,18 @@ function FAQ() {
     </section>
   );
 }
-
 function AboutUs() {
   return (
     <section className="about-section" id="about">
-      <SectionHead kicker="Who we are" title="Meet the founder" sub="Built by an engineer, for engineers" />
+      <Reveal className="section-header">
+        <span className="section-tag">Who We Are</span>
+        <h2>Meet the Founder</h2>
+        <p>Built by an engineer, for engineers</p>
+      </Reveal>
 
       <div className="about-wrapper">
         <div className="founder-card">
+          <div className="founder-glow"></div>
           <div className="founder-avatar">
             <span>PP</span>
           </div>
@@ -576,9 +576,9 @@ function AboutUs() {
           <p className="founder-role">CEO &amp; Founder, EngiAssist</p>
 
           <div className="founder-badges">
-            <span className="founder-badge"><Cog size={15} strokeWidth={1.8} /> Mechanical Engineer</span>
-            <span className="founder-badge"><TrendingUp size={15} strokeWidth={1.8} /> Marketing Manager, Solar industry</span>
-            <span className="founder-badge"><MapPin size={15} strokeWidth={1.8} /> Jalgaon, Maharashtra</span>
+            <span className="founder-badge">⚙️ Mechanical Engineer</span>
+            <span className="founder-badge">📈 Marketing Manager @ In Solar industry</span>
+            <span className="founder-badge">📍 Jalgaon, Maharashtra</span>
           </div>
 
           <a
@@ -587,14 +587,14 @@ function AboutUs() {
             rel="noopener noreferrer"
             className="founder-linkedin"
           >
-            <Linkedin size={16} strokeWidth={1.8} /> Connect on LinkedIn
+            🔗 Connect on LinkedIn
           </a>
 
           <p className="founder-bio">
             Pratik founded EngiAssist to give engineering students across every
             branch the same project guidance and support he wished he'd had —
             combining hands-on mechanical engineering expertise with real-world
-            marketing and leadership experience in the solar industry. Based in
+            marketing and leadership experience In Solar industry. Based in
             Jalgaon, Maharashtra, he's built EngiAssist into a trusted resource
             for thousands of students working on mini and major projects.
           </p>
@@ -602,15 +602,18 @@ function AboutUs() {
 
         <div className="about-highlights">
           <div className="about-highlight-card">
-            <h4>Engineer-led</h4>
+            <div className="about-highlight-icon">🎓</div>
+            <h4>Engineer-Led</h4>
             <p>Every project reviewed with real engineering rigor, not just templates.</p>
           </div>
           <div className="about-highlight-card">
-            <h4>Marketing-backed</h4>
+            <div className="about-highlight-icon">📣</div>
+            <h4>Marketing-Backed</h4>
             <p>Presentation and communication polish from real industry marketing experience.</p>
           </div>
           <div className="about-highlight-card">
-            <h4>Proudly local</h4>
+            <div className="about-highlight-icon">🇮🇳</div>
+            <h4>Proudly Local</h4>
             <p>Based in Jalgaon, Maharashtra — supporting students across India.</p>
           </div>
         </div>
@@ -623,11 +626,16 @@ function AboutPage() {
   const [active, setActive] = useState("About");
   return (
     <div className="app">
+      <CursorGlow />
       <Navbar active={active} setActive={setActive} />
       <section className="about-hero">
-        <div className="hero-bg"></div>
+        <div className="hero-bg">
+          <div className="grid-overlay"></div>
+          <div className="orb orb1"></div>
+          <div className="orb orb2"></div>
+        </div>
         <Reveal className="about-hero-content">
-          <span className="kicker">The story behind EngiAssist</span>
+          <span className="hero-badge">🎓 The Story Behind EngiAssist</span>
           <h1 className="about-hero-title">About EngiAssist</h1>
           <p className="hero-sub">
             Built by an engineer who understands exactly what students need —
@@ -645,49 +653,41 @@ function AboutPage() {
 function Projects() {
   const [selectedBranch, setSelectedBranch] = useState("cs");
   const current = branches.find((b) => b.id === selectedBranch);
-  const CurrentIcon = branchIconMap[current.id];
 
   return (
     <section className="projects-section" id="projects">
-      <SectionHead
-        kicker="Project ideas"
-        title="Explore project topics"
-        sub="Handpicked project ideas for each engineering branch"
-      />
+      <Reveal className="section-header">
+        <span className="section-tag">Project Ideas</span>
+        <h2>Explore Project Topics</h2>
+        <p>Handpicked project ideas for each engineering branch</p>
+      </Reveal>
       <div className="proj-tabs">
-        {branches.map((b) => {
-          const Icon = branchIconMap[b.id];
-          return (
-            <button
-              key={b.id}
-              className={`proj-tab ${selectedBranch === b.id ? "active" : ""}`}
-              onClick={() => setSelectedBranch(b.id)}
-            >
-              <Icon size={15} strokeWidth={1.8} /> {b.label}
-            </button>
-          );
-        })}
+        {branches.map((b) => (
+          <button
+            key={b.id}
+            className={`proj-tab ${selectedBranch === b.id ? "active" : ""}`}
+            style={selectedBranch === b.id ? { "--tab-color": b.color } : {}}
+            onClick={() => setSelectedBranch(b.id)}
+          >
+            {b.icon} {b.label}
+          </button>
+        ))}
       </div>
-      <div className="proj-cards">
-        {current.projects.map((p, i) => {
-          const Icon = projectIcon(p, CurrentIcon);
-          return (
-            <div key={p} className="proj-card">
-              <div className="proj-card-top">
-                <div className="proj-icon-badge"><Icon size={17} strokeWidth={1.8} /></div>
-                <div className="proj-number">{String(i + 1).padStart(2, "0")}</div>
-              </div>
-              <div className="proj-name">{p}</div>
-              <div className="proj-branch">{current.label}</div>
-              <button
-                className="proj-btn"
-                onClick={() => document.getElementById("contact").scrollIntoView({ behavior: "smooth" })}
-              >
-                Request this project
-              </button>
-            </div>
-          );
-        })}
+      <div className="proj-cards" style={{ "--accent": current.color }}>
+        {current.projects.map((p, i) => (
+          <div key={p} className="proj-card" style={{ animationDelay: `${i * 0.07}s` }}>
+            <div className="proj-icon-badge">{projectIcon(p, current.icon)}</div>
+            <div className="proj-number">0{i + 1}</div>
+            <div className="proj-name">{p}</div>
+            <div className="proj-branch">{current.icon} {current.label}</div>
+            <button
+              className="proj-btn"
+              onClick={() => document.getElementById("contact").scrollIntoView({ behavior: "smooth" })}
+            >
+              Get This Project →
+            </button>
+          </div>
+        ))}
       </div>
     </section>
   );
@@ -788,22 +788,26 @@ Please contact me regarding my project.`;
 
   return (
     <section className="contact-section" id="contact">
-      <SectionHead kicker="Get started" title="Request project help" sub="Tell us your branch and project needs — we'll guide you step by step" />
+      <Reveal className="section-header light">
+        <span className="section-tag">Get Started</span>
+        <h2>Request Project Help</h2>
+        <p>Tell us your branch and project needs — we'll guide you step by step</p>
+      </Reveal>
       <div className="contact-wrapper">
         <div className="contact-info">
-          <h3>Why choose EngiAssist?</h3>
+          <h3>Why Choose EngiAssist?</h3>
           <ul>
-            <li><CheckCircle2 size={16} strokeWidth={1.8} /> Expert guidance for all 6 engineering branches</li>
-            <li><CheckCircle2 size={16} strokeWidth={1.8} /> Complete project from scratch or partial help</li>
-            <li><CheckCircle2 size={16} strokeWidth={1.8} /> IEEE-format documentation & reports</li>
-            <li><CheckCircle2 size={16} strokeWidth={1.8} /> Working source code & design files</li>
-            <li><CheckCircle2 size={16} strokeWidth={1.8} /> Presentation & PPT preparation</li>
-            <li><CheckCircle2 size={16} strokeWidth={1.8} /> Fast turnaround — results in 24–48 hours</li>
+            <li>✅ Expert guidance for all 6 engineering branches</li>
+            <li>✅ Complete project from scratch or partial help</li>
+            <li>✅ IEEE-format documentation & reports</li>
+            <li>✅ Working source code & design files</li>
+            <li>✅ Presentation & PPT preparation</li>
+            <li>✅ Fast turnaround — results in 24–48 hours</li>
           </ul>
           <div className="contact-badges">
-            <span>Top rated</span>
-            <span>Fast delivery</span>
-            <span>100% original</span>
+            <span>🏆 Top Rated</span>
+            <span>⚡ Fast Delivery</span>
+            <span>🔒 100% Original</span>
           </div>
         </div>
 
@@ -817,7 +821,7 @@ Please contact me regarding my project.`;
               <input name="email" type="email" placeholder="Email Address *" value={form.email} onChange={handle} required />
               <select name="branch" value={form.branch} onChange={handle}>
                 {branches.map((b) => (
-                  <option key={b.id} value={b.id}>{b.label}</option>
+                  <option key={b.id} value={b.id}>{b.icon} {b.label}</option>
                 ))}
               </select>
             </div>
@@ -841,16 +845,16 @@ Please contact me regarding my project.`;
             </div>
             <textarea name="message" placeholder="Describe what help you need (specific requirements, existing issues, etc.)" rows={4} value={form.message} onChange={handle}></textarea>
             <button type="submit" className="btn-submit" disabled={submitting}>
-              {submitting ? "Submitting…" : "Submit request"}
+              {submitting ? "Submitting..." : "Submit Request 🚀"}
             </button>
           </form>
         ) : (
           <div className="success-box">
-            <CheckCircle2 size={38} strokeWidth={1.5} className="success-icon" />
-            <h3>Requirement received</h3>
+            <div className="success-icon">🎉</div>
+            <h3>Requirement Received!</h3>
             <p className="success-lead-code">Reference ID: <strong>{leadCode}</strong></p>
             <p>Our team will review your requirement and reach out on WhatsApp. Quote the reference above if you follow up with us.</p>
-            <button className="btn-primary" onClick={() => setSubmitted(false)}>Submit another request</button>
+            <button className="btn-primary" onClick={() => setSubmitted(false)}>Submit Another Request</button>
           </div>
         )}
       </div>
@@ -862,42 +866,36 @@ function Footer() {
   return (
     <footer className="footer">
       <div className="footer-inner">
-        <div className="footer-top">
-          <div>
-            <a href="/" className="footer-brand">
-              <span className="logo-mark">EA</span>
-              <span>EngiAssist</span>
-            </a>
-            <p>Empowering every engineering student to build, learn, and succeed.</p>
-          </div>
-          <div className="footer-links">
-            <a href="/">Home</a>
-            <a href="/#branches">Branches</a>
-            <a href="/#services">Services</a>
-            <a href="/about">About</a>
-            <a href="/#projects">Projects</a>
-            <a href="/#contact">Contact</a>
-          </div>
+        <div className="footer-brand">
+          <span className="logo-icon">⚡</span>
+          <span>EngiAssist</span>
+        </div>
+        <p>Empowering every engineering student to build, learn, and succeed.</p>
+        <div className="footer-links">
+          <a href="/">Home</a>
+          <a href="/#branches">Branches</a>
+          <a href="/#services">Services</a>
+          <a href="/about">About</a>
+          <a href="/#projects">Projects</a>
+          <a href="/#contact">Contact</a>
         </div>
         <div className="footer-seo-links">
           <div className="footer-seo-col">
-            <p className="footer-seo-title">By branch</p>
+            <p className="footer-seo-title">By Branch</p>
             {Object.entries(branchSeoContent).map(([id, c]) => (
               <a key={id} href={c.path}>{branches.find((b) => b.id === id)?.label} Projects</a>
             ))}
           </div>
           <div className="footer-seo-col">
-            <p className="footer-seo-title">By service</p>
+            <p className="footer-seo-title">By Service</p>
             <a href="/final-year-project-help">Final Year Project Help</a>
             {Object.entries(serviceSeoPages).map(([slug, c]) => (
               <a key={slug} href={c.path}>{c.heading}</a>
             ))}
           </div>
         </div>
-        <div className="footer-bottom">
-          <p className="footer-copy">© 2026 EngiAssist. Built for engineering students in India.</p>
-          <a className="footer-admin-link" href="/dashboard">Admin login</a>
-        </div>
+        <p className="footer-copy">© 2026 EngiAssist. Built for engineering students. 🇮🇳</p>
+        <a className="footer-admin-link" href="/dashboard">Admin Login</a>
       </div>
     </footer>
   );
@@ -937,8 +935,8 @@ function SeoCta({ heading = "Ready to get started?" }) {
       <Reveal className="seo-cta-inner">
         <h2>{heading}</h2>
         <div className="hero-btns">
-          <button className="btn-primary" onClick={openWhatsApp}>Chat on WhatsApp</button>
-          <a className="btn-secondary" href="/#contact">Request this service</a>
+          <button className="btn-primary" onClick={openWhatsApp}>Chat on WhatsApp 🚀</button>
+          <a className="btn-secondary" href="/#contact">Request This Service ↗</a>
         </div>
       </Reveal>
     </section>
@@ -989,18 +987,22 @@ const branchSeoContent = {
 function BranchSeoPage({ branchId }) {
   const [active, setActive] = useState("Branches");
   const branch = branches.find((b) => b.id === branchId);
-  const Icon = branchIconMap[branchId];
   const content = branchSeoContent[branchId];
   useSeoMeta({ title: content.title, description: content.metaDescription, path: content.path });
 
   return (
     <div className="app">
+      <CursorGlow />
       <Navbar active={active} setActive={setActive} />
       <section className="about-hero">
-        <div className="hero-bg"></div>
+        <div className="hero-bg">
+          <div className="grid-overlay"></div>
+          <div className="orb orb1"></div>
+          <div className="orb orb2"></div>
+        </div>
         <Reveal className="about-hero-content">
-          <div className="seo-icon-badge"><Icon size={24} strokeWidth={1.8} /></div>
-          <span className="kicker">{branch.label}</span>
+          <div className="seo-icon-badge" style={{ "--accent": branch.color }}>{branch.icon}</div>
+          <span className="hero-badge">{branch.icon} {branch.label}</span>
           <h1 className="about-hero-title">{branch.label} Project Assistance</h1>
           <p className="hero-sub">{branch.desc}</p>
         </Reveal>
@@ -1011,22 +1013,21 @@ function BranchSeoPage({ branchId }) {
         </Reveal>
       </section>
       <section className="projects-section" id="projects">
-        <SectionHead kicker="Popular topics" title={`${branch.label} project ideas`} sub="A starting point — we also build custom topics around your requirement" />
-        <div className="proj-cards">
-          {branch.projects.map((p, i) => {
-            const PIcon = projectIcon(p, Icon);
-            return (
-              <div key={p} className="proj-card">
-                <div className="proj-card-top">
-                  <div className="proj-icon-badge"><PIcon size={17} strokeWidth={1.8} /></div>
-                  <div className="proj-number">{String(i + 1).padStart(2, "0")}</div>
-                </div>
-                <div className="proj-name">{p}</div>
-                <div className="proj-branch">{branch.label}</div>
-                <a className="proj-btn" href="/#contact">Request this project</a>
-              </div>
-            );
-          })}
+        <Reveal className="section-header">
+          <span className="section-tag">Popular Topics</span>
+          <h2>{branch.label} Project Ideas</h2>
+          <p>A starting point — we also build custom topics around your requirement</p>
+        </Reveal>
+        <div className="proj-cards" style={{ "--accent": branch.color }}>
+          {branch.projects.map((p, i) => (
+            <div key={p} className="proj-card" style={{ animationDelay: `${i * 0.07}s` }}>
+              <div className="proj-icon-badge">{projectIcon(p, branch.icon)}</div>
+              <div className="proj-number">0{i + 1}</div>
+              <div className="proj-name">{p}</div>
+              <div className="proj-branch">{branch.icon} {branch.label}</div>
+              <a className="proj-btn" href="/#contact">Get This Project →</a>
+            </div>
+          ))}
         </div>
       </section>
       <HowItWorks />
@@ -1042,7 +1043,7 @@ function BranchSeoPage({ branchId }) {
 const serviceSeoPages = {
   "project-debugging": {
     path: "/project-debugging",
-    icon: Wrench,
+    icon: "🛠️",
     title: "Project Debugging Help for Engineering Students | EngiAssist",
     metaDescription: "Stuck with a broken engineering project? Get help fixing code errors, missing modules and database issues — for any branch, at any stage of completion.",
     heading: "Project Debugging & Error Fixing",
@@ -1051,7 +1052,7 @@ const serviceSeoPages = {
   },
   "project-documentation-help": {
     path: "/project-documentation-help",
-    icon: FileText,
+    icon: "📋",
     title: "Project Documentation & Report Writing Help | EngiAssist",
     metaDescription: "IEEE-format project reports, synopsis, SRS documents and technical diagrams for engineering final year and mini projects.",
     heading: "Project Documentation & Reports",
@@ -1060,7 +1061,7 @@ const serviceSeoPages = {
   },
   "viva-preparation": {
     path: "/viva-preparation",
-    icon: Mic,
+    icon: "🎤",
     title: "Viva Preparation for Engineering Projects | EngiAssist",
     metaDescription: "Understand your engineering project well enough to defend it confidently in your viva — plain-language walkthroughs for every branch.",
     heading: "Viva & Project Explanation",
@@ -1069,7 +1070,7 @@ const serviceSeoPages = {
   },
   "ppt-presentation-help": {
     path: "/ppt-presentation-help",
-    icon: Presentation,
+    icon: "📊",
     title: "Project PPT & Presentation Design Help | EngiAssist",
     metaDescription: "Professional PPT design and presentation preparation for engineering project submissions and final year project defense.",
     heading: "PPT & Presentation Design",
@@ -1078,7 +1079,7 @@ const serviceSeoPages = {
   },
   "career-placement-guidance": {
     path: "/career-placement-guidance",
-    icon: Target,
+    icon: "🎯",
     title: "Career & Placement Guidance for Engineering Students | EngiAssist",
     metaDescription: "Resume building, mock interviews, internship guidance and placement prep for engineering students — practical support, no false promises.",
     heading: "Career & Placement Guidance",
@@ -1094,12 +1095,17 @@ function ServiceSeoPage({ slug }) {
 
   return (
     <div className="app">
+      <CursorGlow />
       <Navbar active={active} setActive={setActive} />
       <section className="about-hero">
-        <div className="hero-bg"></div>
+        <div className="hero-bg">
+          <div className="grid-overlay"></div>
+          <div className="orb orb1"></div>
+          <div className="orb orb2"></div>
+        </div>
         <Reveal className="about-hero-content">
-          <div className="seo-icon-badge"><content.icon size={24} strokeWidth={1.8} /></div>
-          <span className="kicker">Engineering project support</span>
+          <div className="seo-icon-badge">{content.icon}</div>
+          <span className="hero-badge">🎓 Engineering Project Support</span>
           <h1 className="about-hero-title">{content.heading}</h1>
           <p className="hero-sub">{content.intro}</p>
         </Reveal>
@@ -1132,11 +1138,17 @@ function FinalYearProjectPage() {
 
   return (
     <div className="app">
+      <CursorGlow />
       <Navbar active={active} setActive={setActive} />
       <section className="about-hero">
-        <div className="hero-bg"></div>
+        <div className="hero-bg">
+          <div className="grid-overlay"></div>
+          <div className="orb orb1"></div>
+          <div className="orb orb2"></div>
+        </div>
         <Reveal className="about-hero-content">
-          <span className="kicker">Final year project assistance</span>
+          <div className="seo-icon-badge">🎓</div>
+          <span className="hero-badge">🎓 Final Year Project Assistance</span>
           <h1 className="about-hero-title">Final Year Project Help, Start to Submission</h1>
           <p className="hero-sub">
             From choosing a topic to building it, documenting it and defending it in your viva —
@@ -1170,22 +1182,23 @@ function FloatingWhatsApp() {
         position: "fixed",
         right: "24px",
         bottom: "24px",
-        width: "54px",
-        height: "54px",
-        borderRadius: "4px",
+        width: "60px",
+        height: "60px",
+        borderRadius: "50%",
         border: "none",
         background: "#25D366",
         color: "white",
+        fontSize: "30px",
         cursor: "pointer",
         zIndex: 9999,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        boxShadow: "0 6px 20px rgba(0, 0, 0, 0.35)",
+        boxShadow: "0 6px 20px rgba(0, 0, 0, 0.3)",
         transition: "transform 0.2s ease",
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.transform = "scale(1.06)";
+        e.currentTarget.style.transform = "scale(1.1)";
       }}
       onMouseLeave={(e) => {
         e.currentTarget.style.transform = "scale(1)";
@@ -1194,8 +1207,8 @@ function FloatingWhatsApp() {
       <svg
         xmlns="http://www.w3.org/2000/svg"
         viewBox="0 0 24 24"
-        width="28"
-        height="28"
+        width="32"
+        height="32"
         fill="white"
         aria-hidden="true"
       >
@@ -1210,6 +1223,7 @@ function Landing() {
 
   return (
     <div className="app">
+      <CursorGlow />
       <Navbar active={active} setActive={setActive} />
       <Hero />
       <Branches />
