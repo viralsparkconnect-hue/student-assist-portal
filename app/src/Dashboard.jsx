@@ -1,340 +1,353 @@
-/* ─── Dashboard: shares design tokens from index.css (:root vars) ─── */
+import { useState, useEffect, useMemo } from "react";
+import {
+  Code2, Cog, Building2, Zap, Cpu, FlaskConical,
+  Inbox, Sparkle, CalendarDays, LineChart, RotateCcw, Download, Trash2,
+} from "lucide-react";
+import "./dashboard.css";
+import { supabase } from "./lib/supabaseClient";
 
-.dash-loading-screen {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ink);
-  color: var(--muted);
-  font-family: var(--font-body);
+const projectStatusMeta = {
+  idea: "Only Idea",
+  started: "Started",
+  partial: "Partially Completed",
+  almost: "Almost Completed",
+};
+
+const branchMeta = {
+  cs: { label: "Computer Science", icon: Code2 },
+  mech: { label: "Mechanical", icon: Cog },
+  civil: { label: "Civil", icon: Building2 },
+  elec: { label: "Electronics", icon: Zap },
+  it: { label: "IT / AI & ML", icon: Cpu },
+  chem: { label: "Chemical", icon: FlaskConical },
+};
+
+function LoginScreen({ onLoggedIn }) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+    const { data, error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+    setLoading(false);
+    if (signInError) {
+      setError(signInError.message || "Login failed. Check your email/password.");
+      return;
+    }
+    onLoggedIn(data.session);
+  };
+
+  return (
+    <div className="dash-login-wrap">
+      <div className="dash-login-card">
+        <div className="dash-login-logo">
+          EngiAssist <span className="dash-badge">ADMIN</span>
+        </div>
+        <h1>Dashboard Login</h1>
+        <p className="dash-login-sub">Sign in with the admin account you created in Supabase → Authentication.</p>
+        <form onSubmit={submit}>
+          <input
+            type="email"
+            placeholder="Email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoFocus
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          {error && <p className="dash-error">{error}</p>}
+          <button type="submit" disabled={loading}>
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
+        </form>
+        <a href="/" className="dash-back-link">Back to site</a>
+      </div>
+    </div>
+  );
 }
 
-/* ─── Login ─── */
-.dash-login-wrap {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--ink);
-  font-family: var(--font-body);
-  padding: 1.5rem;
+function StatCard({ label, value, icon: Icon }) {
+  return (
+    <div className="stat-card">
+      <div className="stat-card-icon"><Icon size={18} strokeWidth={1.8} /></div>
+      <div>
+        <div className="stat-card-value">{value}</div>
+        <div className="stat-card-label">{label}</div>
+      </div>
+    </div>
+  );
 }
 
-.dash-login-card {
-  width: 100%;
-  max-width: 380px;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 2.2rem;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.35);
+function DashboardApp({ session, onLogout }) {
+  const [leads, setLeads] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [branchFilter, setBranchFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const fetchLeads = async () => {
+    setLoading(true);
+    setError("");
+    const { data, error: fetchError } = await supabase
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setLoading(false);
+    if (fetchError) {
+      setError(fetchError.message);
+      return;
+    }
+    setLeads(data || []);
+  };
+
+  useEffect(() => {
+    fetchLeads();
+    // Live updates: new leads appear instantly without refresh
+    const channel = supabase
+      .channel("leads-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "leads" }, () => fetchLeads())
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  const updateStatus = async (id, status) => {
+    setLeads((prev) => prev.map((l) => (l.id === id ? { ...l, status } : l)));
+    await supabase.from("leads").update({ status }).eq("id", id);
+  };
+
+  const deleteLead = async (id) => {
+    if (!confirm("Delete this lead? This can't be undone.")) return;
+    setLeads((prev) => prev.filter((l) => l.id !== id));
+    await supabase.from("leads").delete().eq("id", id);
+  };
+
+  const filtered = useMemo(() => {
+    return leads.filter((l) => {
+      if (branchFilter !== "all" && l.branch !== branchFilter) return false;
+      if (statusFilter !== "all" && l.status !== statusFilter) return false;
+      if (search) {
+        const q = search.toLowerCase();
+        if (!l.name?.toLowerCase().includes(q) && !l.email?.toLowerCase().includes(q) && !l.phone?.toLowerCase().includes(q) && !l.project?.toLowerCase().includes(q)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [leads, branchFilter, statusFilter, search]);
+
+  const stats = useMemo(() => {
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(startOfToday);
+    startOfWeek.setDate(startOfWeek.getDate() - 7);
+
+    const today = leads.filter((l) => new Date(l.created_at) >= startOfToday).length;
+    const week = leads.filter((l) => new Date(l.created_at) >= startOfWeek).length;
+    const newCount = leads.filter((l) => l.status === "new").length;
+
+    const byBranch = {};
+    leads.forEach((l) => {
+      byBranch[l.branch] = (byBranch[l.branch] || 0) + 1;
+    });
+
+    return { total: leads.length, today, week, newCount, byBranch };
+  }, [leads]);
+
+  const exportCSV = () => {
+    const headers = ["Lead ID", "Name", "Phone", "Email", "Branch", "Semester", "Project", "Current Status", "Deadline", "Message", "Status", "Submitted At"];
+    const rows = filtered.map((l) => [
+      l.lead_code, l.name, l.phone, l.email, branchMeta[l.branch]?.label || l.branch, l.semester, l.project,
+      projectStatusMeta[l.project_status] || l.project_status, l.deadline, l.message, l.status,
+      new Date(l.created_at).toLocaleString(),
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((cell) => `"${String(cell ?? "").replace(/"/g, '""')}"`).join(","))
+      .join("\n");
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `engiassist-leads-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const maxBranchCount = Math.max(1, ...Object.values(stats.byBranch));
+
+  return (
+    <div className="dash">
+      <header className="dash-header">
+        <div className="dash-header-left">
+          <span className="dash-logo">EngiAssist</span>
+          <span className="dash-badge">ADMIN</span>
+        </div>
+        <div className="dash-header-right">
+          <span className="dash-user">{session?.user?.email}</span>
+          <button className="dash-btn-ghost" onClick={fetchLeads}><RotateCcw size={14} strokeWidth={1.8} /> Refresh</button>
+          <button className="dash-btn-ghost" onClick={onLogout}>Log out</button>
+        </div>
+      </header>
+
+      <main className="dash-main">
+        <div className="dash-stats-grid">
+          <StatCard label="Total Leads" value={stats.total} icon={Inbox} />
+          <StatCard label="New (Unhandled)" value={stats.newCount} icon={Sparkle} />
+          <StatCard label="Today" value={stats.today} icon={CalendarDays} />
+          <StatCard label="Last 7 Days" value={stats.week} icon={LineChart} />
+        </div>
+
+        <div className="dash-panel">
+          <div className="dash-panel-header">
+            <h2>Leads by Branch</h2>
+          </div>
+          <div className="branch-bars">
+            {Object.keys(branchMeta).map((id) => {
+              const count = stats.byBranch[id] || 0;
+              const Icon = branchMeta[id].icon;
+              return (
+                <div className="branch-bar-row" key={id}>
+                  <span className="branch-bar-label"><Icon size={14} strokeWidth={1.8} /> {branchMeta[id].label}</span>
+                  <div className="branch-bar-track">
+                    <div
+                      className="branch-bar-fill"
+                      style={{ width: `${(count / maxBranchCount) * 100}%` }}
+                    ></div>
+                  </div>
+                  <span className="branch-bar-count">{count}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="dash-panel">
+          <div className="dash-panel-header">
+            <h2>All Leads</h2>
+            <div className="dash-toolbar">
+              <input
+                className="dash-search"
+                placeholder="Search name, email, project..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)}>
+                <option value="all">All Branches</option>
+                {Object.entries(branchMeta).map(([id, b]) => (
+                  <option key={id} value={id}>{b.label}</option>
+                ))}
+              </select>
+              <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <option value="all">All Statuses</option>
+                <option value="new">New</option>
+                <option value="contacted">Contacted</option>
+                <option value="closed">Closed</option>
+              </select>
+              <button className="dash-btn-primary" onClick={exportCSV}><Download size={14} strokeWidth={1.8} /> Export CSV</button>
+            </div>
+          </div>
+
+          {error && <p className="dash-error">Couldn't load leads: {error}</p>}
+          {loading ? (
+            <div className="dash-empty">Loading leads…</div>
+          ) : filtered.length === 0 ? (
+            <div className="dash-empty">No leads match these filters yet.</div>
+          ) : (
+            <div className="dash-table-wrap">
+              <table className="dash-table">
+                <thead>
+                  <tr>
+                    <th>Lead ID</th>
+                    <th>Student</th>
+                    <th>Branch</th>
+                    <th>Semester</th>
+                    <th>Project</th>
+                    <th>Current Status</th>
+                    <th>Deadline</th>
+                    <th>Message</th>
+                    <th>Submitted</th>
+                    <th>Status</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((l) => (
+                    <tr key={l.id}>
+                      <td>{l.lead_code || "—"}</td>
+                      <td>
+                        <div className="dash-cell-name">{l.name}</div>
+                        <div className="dash-cell-email">{l.email}</div>
+                        <div className="dash-cell-email">{l.phone || "—"}</div>
+                      </td>
+                      <td>
+                        <span className="dash-chip">
+                          {branchMeta[l.branch]?.icon &&
+                            (() => { const Icon = branchMeta[l.branch].icon; return <Icon size={13} strokeWidth={1.8} />; })()}
+                          {branchMeta[l.branch]?.label || l.branch}
+                        </span>
+                      </td>
+                      <td>{l.semester || "—"}</td>
+                      <td>{l.project || "—"}</td>
+                      <td>{projectStatusMeta[l.project_status] || "—"}</td>
+                      <td>{l.deadline || "—"}</td>
+                      <td className="dash-cell-message" title={l.message}>{l.message || "—"}</td>
+                      <td>{new Date(l.created_at).toLocaleDateString()} <span className="dash-time">{new Date(l.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span></td>
+                      <td>
+                        <select
+                          className={`dash-status dash-status-${l.status}`}
+                          value={l.status}
+                          onChange={(e) => updateStatus(l.id, e.target.value)}
+                        >
+                          <option value="new">New</option>
+                          <option value="contacted">Contacted</option>
+                          <option value="closed">Closed</option>
+                        </select>
+                      </td>
+                      <td>
+                        <button className="dash-btn-icon" title="Delete lead" onClick={() => deleteLead(l.id)}>
+                          <Trash2 size={15} strokeWidth={1.8} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
 }
 
-.dash-login-logo {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 1.2rem;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-bottom: 1.5rem;
-}
+export default function Dashboard() {
+  const [session, setSession] = useState(undefined); // undefined = checking, null = logged out
 
-.dash-badge {
-  background: var(--accent);
-  color: #fff;
-  font-size: 0.6rem;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: var(--radius);
-  letter-spacing: 1px;
-  font-family: var(--font-mono);
-}
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setSession(data.session));
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
+      setSession(newSession);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
 
-.dash-login-card h1 {
-  font-family: var(--font-display);
-  font-size: 1.5rem;
-  color: #fff;
-  margin-bottom: 0.4rem;
-}
+  if (session === undefined) {
+    return <div className="dash-loading-screen">Loading dashboard…</div>;
+  }
 
-.dash-login-sub {
-  color: var(--muted);
-  font-size: 0.85rem;
-  margin-bottom: 1.5rem;
-  line-height: 1.5;
-}
+  if (!session) {
+    return <LoginScreen onLoggedIn={setSession} />;
+  }
 
-.dash-login-card form {
-  display: flex;
-  flex-direction: column;
-  gap: 0.8rem;
-}
-
-.dash-login-card input {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-  color: var(--text);
-  font-family: inherit;
-  font-size: 0.9rem;
-}
-
-.dash-login-card input:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.dash-login-card button {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 0.9rem;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  margin-top: 0.4rem;
-  transition: opacity 0.2s, transform 0.2s;
-}
-
-.dash-login-card button:hover { transform: translateY(-2px); }
-.dash-login-card button:disabled { opacity: 0.6; cursor: default; transform: none; }
-
-.dash-error {
-  color: #ff6b6b;
-  font-size: 0.8rem;
-  background: rgba(255,45,85,0.1);
-  border: 1px solid rgba(255,45,85,0.3);
-  padding: 0.6rem 0.8rem;
-  border-radius: 8px;
-}
-
-.dash-back-link {
-  display: block;
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.8rem;
-  margin-top: 1.4rem;
-  text-decoration: none;
-}
-.dash-back-link:hover { color: var(--accent); }
-
-/* ─── Shell ─── */
-.dash {
-  min-height: 100vh;
-  background: var(--ink);
-  font-family: var(--font-body);
-  color: var(--text);
-}
-
-.dash-header {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1rem 5%;
-  background: rgba(4,8,18,0.92);
-  backdrop-filter: blur(20px);
-  border-bottom: 1px solid var(--line);
-}
-
-.dash-header-left { display: flex; align-items: center; gap: 0.6rem; }
-.dash-logo { font-family: var(--font-display); font-weight: 800; font-size: 1.15rem; color: #fff; }
-
-.dash-header-right { display: flex; align-items: center; gap: 0.8rem; }
-.dash-user { color: var(--muted); font-size: 0.82rem; }
-
-.dash-btn-ghost,
-.dash-btn-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.dash-btn-ghost {
-  background: transparent;
-  border: 1px solid var(--line);
-  color: var(--text);
-  padding: 0.5rem 0.9rem;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  font-family: inherit;
-  transition: border-color 0.2s, color 0.2s;
-}
-.dash-btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-
-.dash-btn-primary {
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  padding: 0.6rem 1.1rem;
-  border-radius: 8px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.dash-btn-primary:hover { transform: translateY(-1px); }
-
-.dash-main {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 2rem 5% 4rem;
-}
-
-/* ─── Stat cards ─── */
-.dash-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1.8rem;
-}
-
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 1.3rem;
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  border-left: 2px solid var(--accent);
-}
-
-.stat-card-icon {
-  color: var(--accent);
-  width: 42px; height: 42px;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--surface-2);
-  border-radius: var(--radius);
-  flex-shrink: 0;
-}
-
-.stat-card-value { font-family: var(--font-display); font-size: 1.6rem; font-weight: 800; color: #fff; }
-.stat-card-label { color: var(--muted); font-size: 0.78rem; margin-top: 0.15rem; }
-
-/* ─── Panels ─── */
-.dash-panel {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.dash-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 1rem;
-  margin-bottom: 1.2rem;
-}
-
-.dash-panel-header h2 {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  color: #fff;
-}
-
-.dash-toolbar { display: flex; gap: 0.6rem; flex-wrap: wrap; }
-
-.dash-search, .dash-toolbar select {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  color: var(--text);
-  border-radius: 8px;
-  padding: 0.55rem 0.8rem;
-  font-size: 0.82rem;
-  font-family: inherit;
-}
-.dash-search { min-width: 200px; }
-
-/* ─── Branch bars ─── */
-.branch-bars { display: flex; flex-direction: column; gap: 0.8rem; }
-.branch-bar-row { display: grid; grid-template-columns: 180px 1fr 34px; align-items: center; gap: 0.8rem; }
-.branch-bar-label { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: var(--muted); }
-.branch-bar-track { height: 6px; background: var(--surface-2); overflow: hidden; }
-.branch-bar-fill { height: 100%; background: var(--accent); transition: width 0.4s ease; }
-.branch-bar-count { text-align: right; font-size: 0.82rem; color: var(--text); font-weight: 600; }
-
-/* ─── Table ─── */
-.dash-table-wrap { overflow-x: auto; }
-.dash-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; }
-.dash-table th {
-  text-align: left;
-  color: var(--muted);
-  font-weight: 600;
-  padding: 0.7rem 0.6rem;
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
-.dash-table td {
-  padding: 0.8rem 0.6rem;
-  border-bottom: 1px solid var(--line);
-  vertical-align: top;
-}
-.dash-table tr:hover td { background: rgba(255,255,255,0.02); }
-
-.dash-cell-name { color: #fff; font-weight: 600; }
-.dash-cell-email { color: var(--muted); font-size: 0.76rem; }
-.dash-cell-message { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dash-time { color: var(--muted); font-size: 0.72rem; display: block; }
-
-.dash-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.3rem;
-  background: rgba(255,255,255,0.05);
-  border: 1px solid var(--accent);
-  color: var(--text);
-  padding: 0.25rem 0.6rem;
-  border-radius: var(--radius);
-  font-size: 0.74rem;
-  white-space: nowrap;
-}
-
-.dash-status {
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  color: var(--text);
-  border-radius: 6px;
-  padding: 0.35rem 0.5rem;
-  font-size: 0.76rem;
-  font-family: inherit;
-}
-.dash-status-new { border-color: #ff2d55; color: #ff8ba0; }
-.dash-status-contacted { border-color: #ffbe3d; color: #ffd680; }
-.dash-status-closed { border-color: #4cd964; color: #92e6a7; }
-
-.dash-btn-icon {
-  background: transparent;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 0.95rem;
-  padding: 0.3rem;
-  border-radius: 6px;
-}
-.dash-btn-icon:hover { color: #ff6b6b; background: rgba(255,45,85,0.1); }
-
-.dash-empty {
-  text-align: center;
-  color: var(--muted);
-  padding: 2.5rem 1rem;
-  font-size: 0.9rem;
-}
-
-@media (max-width: 640px) {
-  .dash-header { flex-wrap: wrap; gap: 0.6rem; }
-  .dash-user { display: none; }
-  .branch-bar-row { grid-template-columns: 110px 1fr 28px; }
-  .branch-bar-label { font-size: 0.72rem; }
+  return <DashboardApp session={session} onLogout={() => supabase.auth.signOut()} />;
 }
