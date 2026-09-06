@@ -1,8 +1,4 @@
 import { useState, useEffect, useMemo } from "react";
-import {
-  Code2, Cog, Building2, Zap, Cpu, FlaskConical,
-  Inbox, Sparkle, CalendarDays, LineChart, RotateCcw, Download, Trash2,
-} from "lucide-react";
 import "./dashboard.css";
 import { supabase } from "./lib/supabaseClient";
 
@@ -14,12 +10,12 @@ const projectStatusMeta = {
 };
 
 const branchMeta = {
-  cs: { label: "Computer Science", icon: Code2 },
-  mech: { label: "Mechanical", icon: Cog },
-  civil: { label: "Civil", icon: Building2 },
-  elec: { label: "Electronics", icon: Zap },
-  it: { label: "IT / AI & ML", icon: Cpu },
-  chem: { label: "Chemical", icon: FlaskConical },
+  cs: { label: "Computer Science", icon: "💻", color: "#00f5ff" },
+  mech: { label: "Mechanical", icon: "⚙️", color: "#ff9500" },
+  civil: { label: "Civil", icon: "🏗️", color: "#4cd964" },
+  elec: { label: "Electronics", icon: "⚡", color: "#ff2d55" },
+  it: { label: "IT / AI & ML", icon: "🌐", color: "#af52de" },
+  chem: { label: "Chemical", icon: "🧪", color: "#ffcc00" },
 };
 
 function LoginScreen({ onLoggedIn }) {
@@ -45,7 +41,7 @@ function LoginScreen({ onLoggedIn }) {
     <div className="dash-login-wrap">
       <div className="dash-login-card">
         <div className="dash-login-logo">
-          EngiAssist <span className="dash-badge">ADMIN</span>
+          <span>⚡</span> EngiAssist <span className="dash-badge">ADMIN</span>
         </div>
         <h1>Dashboard Login</h1>
         <p className="dash-login-sub">Sign in with the admin account you created in Supabase → Authentication.</p>
@@ -70,16 +66,16 @@ function LoginScreen({ onLoggedIn }) {
             {loading ? "Signing in..." : "Sign In"}
           </button>
         </form>
-        <a href="/" className="dash-back-link">Back to site</a>
+        <a href="/" className="dash-back-link">← Back to site</a>
       </div>
     </div>
   );
 }
 
-function StatCard({ label, value, icon: Icon }) {
+function StatCard({ label, value, icon, accent }) {
   return (
-    <div className="stat-card">
-      <div className="stat-card-icon"><Icon size={18} strokeWidth={1.8} /></div>
+    <div className="stat-card" style={{ "--accent": accent }}>
+      <div className="stat-card-icon">{icon}</div>
       <div>
         <div className="stat-card-value">{value}</div>
         <div className="stat-card-label">{label}</div>
@@ -189,22 +185,22 @@ function DashboardApp({ session, onLogout }) {
     <div className="dash">
       <header className="dash-header">
         <div className="dash-header-left">
-          <span className="dash-logo">EngiAssist</span>
+          <span className="dash-logo">⚡ EngiAssist</span>
           <span className="dash-badge">ADMIN</span>
         </div>
         <div className="dash-header-right">
           <span className="dash-user">{session?.user?.email}</span>
-          <button className="dash-btn-ghost" onClick={fetchLeads}><RotateCcw size={14} strokeWidth={1.8} /> Refresh</button>
-          <button className="dash-btn-ghost" onClick={onLogout}>Log out</button>
+          <button className="dash-btn-ghost" onClick={fetchLeads}>↻ Refresh</button>
+          <button className="dash-btn-ghost" onClick={onLogout}>Log Out</button>
         </div>
       </header>
 
       <main className="dash-main">
         <div className="dash-stats-grid">
-          <StatCard label="Total Leads" value={stats.total} icon={Inbox} />
-          <StatCard label="New (Unhandled)" value={stats.newCount} icon={Sparkle} />
-          <StatCard label="Today" value={stats.today} icon={CalendarDays} />
-          <StatCard label="Last 7 Days" value={stats.week} icon={LineChart} />
+          <StatCard label="Total Leads" value={stats.total} icon="📥" accent="#00f5ff" />
+          <StatCard label="New (Unhandled)" value={stats.newCount} icon="🆕" accent="#ff2d55" />
+          <StatCard label="Today" value={stats.today} icon="📅" accent="#4cd964" />
+          <StatCard label="Last 7 Days" value={stats.week} icon="📈" accent="#af52de" />
         </div>
 
         <div className="dash-panel">
@@ -214,14 +210,13 @@ function DashboardApp({ session, onLogout }) {
           <div className="branch-bars">
             {Object.keys(branchMeta).map((id) => {
               const count = stats.byBranch[id] || 0;
-              const Icon = branchMeta[id].icon;
               return (
                 <div className="branch-bar-row" key={id}>
-                  <span className="branch-bar-label"><Icon size={14} strokeWidth={1.8} /> {branchMeta[id].label}</span>
+                  <span className="branch-bar-label">{branchMeta[id].icon} {branchMeta[id].label}</span>
                   <div className="branch-bar-track">
                     <div
                       className="branch-bar-fill"
-                      style={{ width: `${(count / maxBranchCount) * 100}%` }}
+                      style={{ width: `${(count / maxBranchCount) * 100}%`, background: branchMeta[id].color }}
                     ></div>
                   </div>
                   <span className="branch-bar-count">{count}</span>
@@ -244,7 +239,7 @@ function DashboardApp({ session, onLogout }) {
               <select value={branchFilter} onChange={(e) => setBranchFilter(e.target.value)}>
                 <option value="all">All Branches</option>
                 {Object.entries(branchMeta).map(([id, b]) => (
-                  <option key={id} value={id}>{b.label}</option>
+                  <option key={id} value={id}>{b.icon} {b.label}</option>
                 ))}
               </select>
               <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
@@ -253,7 +248,7 @@ function DashboardApp({ session, onLogout }) {
                 <option value="contacted">Contacted</option>
                 <option value="closed">Closed</option>
               </select>
-              <button className="dash-btn-primary" onClick={exportCSV}><Download size={14} strokeWidth={1.8} /> Export CSV</button>
+              <button className="dash-btn-primary" onClick={exportCSV}>⬇ Export CSV</button>
             </div>
           </div>
 
@@ -290,10 +285,8 @@ function DashboardApp({ session, onLogout }) {
                         <div className="dash-cell-email">{l.phone || "—"}</div>
                       </td>
                       <td>
-                        <span className="dash-chip">
-                          {branchMeta[l.branch]?.icon &&
-                            (() => { const Icon = branchMeta[l.branch].icon; return <Icon size={13} strokeWidth={1.8} />; })()}
-                          {branchMeta[l.branch]?.label || l.branch}
+                        <span className="dash-chip" style={{ "--accent": branchMeta[l.branch]?.color || "#888" }}>
+                          {branchMeta[l.branch]?.icon} {branchMeta[l.branch]?.label || l.branch}
                         </span>
                       </td>
                       <td>{l.semester || "—"}</td>
@@ -314,9 +307,7 @@ function DashboardApp({ session, onLogout }) {
                         </select>
                       </td>
                       <td>
-                        <button className="dash-btn-icon" title="Delete lead" onClick={() => deleteLead(l.id)}>
-                          <Trash2 size={15} strokeWidth={1.8} />
-                        </button>
+                        <button className="dash-btn-icon" title="Delete lead" onClick={() => deleteLead(l.id)}>🗑</button>
                       </td>
                     </tr>
                   ))}
